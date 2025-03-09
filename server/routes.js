@@ -174,7 +174,7 @@ const album_songs = async function(req, res) {
 
 // Route 7: GET /top_songs
 const top_songs = async function(req, res) {
-  const page = req.query.page;
+  const page = req.query.page ? parseInt(req.query.page) : null;
   // TODO (TASK 8): use the ternary (or nullish) operator 
   // to set the pageSize based on the query or default to 10
   //const pageSize = undefined;
@@ -184,10 +184,42 @@ const top_songs = async function(req, res) {
   if (!page) {
     // TODO (TASK 9)): query the database and return all songs ordered by number of plays (descending)
     // Hint: you will need to use a JOIN to get the album title as well
-    res.json([]); // replace this with your implementation
+    // Hint: you will need to use LIMIT to get the first pageSize songs
+    connection.query(`
+      SELECT s.song_id, s.title AS song_title, s.album_id, a.title AS album_title, s.plays
+      FROM Songs s
+      JOIN Albums a ON s.album_id = a.album_id
+      ORDER BY s.plays DESC
+      `, (err, data) => {
+      if (err) {
+        console.log('Error fetching the album!',err);
+        res.status(500).json({error: 'Internal server error'});
+      } else {
+        res.json(data.rows.length > 0 ? data.rows[0]:{}); // return empty array if no data
+      }
+    }
+    );
+
+    //res.json([]); // replace this with your implementation
   } else {
     // TODO (TASK 10): reimplement TASK 9 with pagination
     // Hint: use LIMIT and OFFSET (see https://www.w3schools.com/php/php_mysql_select_limit.asp)
+    connection.query(`
+      SELECT s.song_id, s.title AS song_title, s.album_id, a.title AS album_title, s.plays
+      FROM Songs s
+      JOIN Albums a ON s.album_id = a.album_id
+      ORDER BY s.plays DESC
+      LIMIT $1 OFFSET $2
+      `, [pageSize, (page - 1) * pageSize], (err, data) => {    // offset calculation
+      if (err) {
+        console.log('Error fetching the album!',err);
+        res.status(500).json({error: 'Internal server error'});
+      } else {
+        res.json(data.rows.length > 0 ? data.rows[0]:{}); // return empty array if no data
+      }
+    }
+    );
+
     res.json([]); // replace this with your implementation
   }
 }
@@ -196,18 +228,87 @@ const top_songs = async function(req, res) {
 const top_albums = async function(req, res) {
   // TODO (TASK 11): return the top albums ordered by aggregate number of plays of all songs on the album (descending), with optional pagination (as in route 7)
   // Hint: you will need to use a JOIN and aggregation to get the total plays of songs in an album
-  res.json([]); // replace this with your implementation
+  //res.json([]); // replace this with your implementation
+  if (!page) {  
+    connections.query(`
+      SELECT a.album_id, a.title, SUM(s.plays) AS plays
+  FROM Albums a
+  JOIN Songs s ON a.album_id = s.album_id
+  GROUP BY a.album_id, a. title
+  ORDER BY plays DESC
+      `, (err, data) => {
+        if (err) {
+          console.log('Error fetching the album!',err);
+          res.status(500).json({error: 'Internal server error'});
+        } else {
+          res.json(data.rows.length > 0 ? data.rows[0]:{}); // return empty array if no data
+        }
+      });}
+    else {
+      const pageSize = req.query.pageSize ? pareseInt(req.query.page_size): 10;
+      const page = req.query.page ? parseInt(req.query.page) : null;
+      connections.query(`
+        SELECT a.album_id, a.title, SUM(s.plays) AS plays
+        FROM Albums a
+        JOIN Songs s ON a.album_id = s.album_id
+        GROUP BY a.album_id, a. title
+        ORDER BY plays DESC
+        LIMIT $1 OFFSET $2
+        `, [pageSize, (page - 1) * pageSize], (err, data) => {    // offset calculation
+        if (err) {
+          console.log('Error fetching the album!',err);
+          res.status(500).json({error: 'Internal server error'});
+        } else {
+          res.json(data.rows.length > 0 ? data.rows[0]:{}); // return empty array if no data
+        }
+      }
+      );
+    }
 }
 
 // Route 9: GET /search_songs
 const search_songs = async function(req, res) {
-  // TODO (TASK 12): return all songs that match the given search query with parameters defaulted to those specified in API spec ordered by title (ascending)
-  // Some default parameters have been provided for you, but you will need to fill in the rest
-  const title = req.query.title ?? '';
+  // TODO (TASK 12): return all songs that match the given 
+  // search query with parameters defaulted to those specified 
+  // in API spec ordered by title (ascending)
+  // Some default parameters have been provided for you, 
+  // but you will need to fill in the rest
+  const title = req.query.title ? '%${req.query.title}%':'%';  
   const durationLow = req.query.duration_low ?? 60;
   const durationHigh = req.query.duration_high ?? 660;
+  const playsLow = req.query.plays_low ? parseInt(req.query.plays_low) : 0;
+  const playsHigh = req.query.plays_high ? parseInt(req.query.plays_high) : 1100000000;
+  const danceabilityLow = req.query.danceability_low ? parseFloat(req.query.danceability_low) : 0;
+  const danceabilityHigh = req.query.danceability_high ? parseFloat(req.query.danceability_high) : 1;
+  const energyLow = req.query.energy_low ? parseFloat(req.query.energy_low) : 0;
+  const energyHigh = req.query.energy_high ? parseFloat(req.query.energy_high) : 1;
+  const valenceLow = req.query.valence_low ? parseFloat(req.query.valence_low) : 0;
+  const valenceHigh = req.query.valence_high ? parseFloat(req.query.valence_high) : 1;
+  const explicit = req.query.explicit === 'true' ? 'true' : 'false'; // Include explicit only if "true"
 
-  res.json([]); // replace this with your implementation
+  connection.query(`
+    SELECT song_id, album_id, title, number, duration, plays, 
+       danceability, energy, valence, tempo, key_mode, explicit
+FROM Songs
+WHERE title LIKE $1
+  AND duration BETWEEN $2 AND $3
+  AND plays BETWEEN $4 AND $5
+  AND danceability BETWEEN $6 AND $7
+  AND energy BETWEEN $8 AND $9
+  AND valence BETWEEN $10 AND $11
+  AND ($12 = 'true' OR explicit = 0) -- Include all songs if explicit=true, otherwise exclude explicit songs
+ORDER BY title ASC;
+    `, [title, durationLow, durationHigh, playsLow, playsHigh, danceabilityLow, danceabilityHigh, energyLow, energyHigh, valenceLow, valenceHigh, explicit], 
+    (err, data) => {
+      if (err) {
+        console.log('Error fetching the album!',err);
+        res.status(500).json({error: 'Internal server error'});
+      } else {
+        res.json(data.rows.length > 0 ? data.rows[0]:{}); // return empty array if no data
+    }
+  }
+  );
+  // res.json([]); // replace this with your implementation
 }
 
 module.exports = {
