@@ -10,6 +10,8 @@ export default function HomePage() {
   // We use the setState hook to persist information across renders (such as the result of our API calls)
   const [songOfTheDay, setSongOfTheDay] = useState({});
   // TODO (TASK 13): add a state variable to store the app author (default to '')
+  const [author, setAuthor] = useState('');
+  // The selectedSongId state variable is used to keep track of the song that the user has clicked on
 
   const [selectedSongId, setSelectedSongId] = useState(null);
 
@@ -27,6 +29,11 @@ export default function HomePage() {
       .then(resJson => setSongOfTheDay(resJson));
 
     // TODO (TASK 14): add a fetch call to get the app author (name not pennkey) and store the name field in the state variable
+    useEffect(() => {
+      fetch(`http://${config.server_host}:${config.server_port}/author/name`)
+        .then(res => res.json())
+        .then(resJson => setAuthor(resJson.data));
+    }, []);
   }, []);
 
   // Here, we define the columns of the "Top Songs" table. The songColumns variable is an array (in order)
@@ -54,7 +61,15 @@ export default function HomePage() {
   // Hint: this should be very similar to songColumns defined above, but has 2 columns instead of 3
   // Hint: recall the schema for an album is different from that of a song (see the API docs for /top_albums). How does that impact the "field" parameter and the "renderCell" function for the album title column?
   const albumColumns = [
-
+    {
+      field: 'title',
+      headerName: 'Album Title',
+      renderCell: (row) => <NavLink to={`/albums/${row.album_id}`}>{row.title}</NavLink>
+    },
+    {
+      field: 'plays',
+      headerName: 'Plays'
+    }
   ]
 
   return (
@@ -69,7 +84,18 @@ export default function HomePage() {
       <LazyTable route={`http://${config.server_host}:${config.server_port}/top_songs`} columns={songColumns} />
       <Divider />
       {/* TODO (TASK 16): add a h2 heading, LazyTable, and divider for top albums. Set the LazyTable's props for defaultPageSize to 5 and rowsPerPageOptions to [5, 10] */}
+      <h2>Top Albums</h2>
+        <LazyTable 
+          route={`http://${config.server_host}:${config.server_port}/top_albums`} 
+          columns={albumColumns} 
+          defaultPageSize={5} 
+          rowsPerPageOptions={[5, 10]} 
+        />
+        <Divider />
       {/* TODO (TASK 17): add a paragraph (<p></p>) that displays “Created by [name]” using the name state stored from TASK 13/TASK 14 */}
+    {/* </Container> */}
+    <p>Created by {author}</p>
     </Container>
+    
   );
 };

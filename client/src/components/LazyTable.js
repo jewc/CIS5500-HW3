@@ -38,6 +38,12 @@ export default function LazyTable({ route, columns, defaultPageSize, rowsPerPage
     const newPageSize = e.target.value;
 
     // TODO (TASK 18): set the pageSize state variable and reset the current page to 1
+    const handleChangePageSize = (e) => {
+      const newPageSize = e.target.value;
+      setPageSize(newPageSize);
+      setPage(1); // Reset to first page
+    };
+    
   }
 
   const defaultRenderCell = (col, row) => {
@@ -53,18 +59,19 @@ export default function LazyTable({ route, columns, defaultPageSize, rowsPerPage
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((row, idx) =>
+          {data.map((row, idx) => (
+            // TODO (TASK 19): the next 3 lines of code render only the first column. 
+            // Wrap this with another map statement to render all columns.                // Hint: look at how we structured the map statement to render all the table headings within the <TableHead> element
+
             <TableRow key={idx}>
-              {
-                // TODO (TASK 19): the next 3 lines of code render only the first column. Wrap this with another map statement to render all columns.
-                // Hint: look at how we structured the map statement to render all the table headings within the <TableHead> element
-                <TableCell key={columns[0].headerName}>
-                  {/* Note the following ternary statement renders the cell using a custom renderCell function if defined, or defaultRenderCell otherwise */}
-                  {columns[0].renderCell ? columns[0].renderCell(row) : defaultRenderCell(columns[0], row)}
-                </TableCell>
-              }
+                                {columns.map((col) => (
+                  <TableCell key={col.headerName}>
+                    {/* Note the following ternary statement renders the cell using a custom renderCell function if defined, or defaultRenderCell otherwise */}
+                    {col.renderCell ? col.renderCell(row) : defaultRenderCell(col, row)}
+                  </TableCell>
+          ))} 
             </TableRow>
-          )}
+          ))}
         </TableBody>
         <TablePagination
           rowsPerPageOptions={rowsPerPageOptions ?? [5, 10, 25]}
