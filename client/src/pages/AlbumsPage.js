@@ -24,6 +24,7 @@ export default function AlbumsPage() {
   return (
     // TODO (TASK 22): Try out the different provided formatting options by replacing “format1”  in the Container's style property with the other provided options.
     // TODO (TASK 22): Choose the one that displays all the albums in a fluid grid.
+    // Replace format1 with format2, format3, or format4 to see the different formatting options
     <Container style={format3}>
       {albums.map((album) =>
         <Box
