@@ -64,6 +64,7 @@ export default function SongCard({ songId, handleClose }) {
         <h1>{songData.title}</h1>
         <h2>Album:&nbsp;
           <NavLink to={`/albums/${albumData.album_id}`}>{albumData.title}</NavLink>
+          
         </h2>
         <p>Duration: {formatDuration(songData.duration)}</p>
         <p>Tempo: {songData.tempo} bpm</p>

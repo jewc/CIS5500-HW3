@@ -27,13 +27,14 @@ export default function HomePage() {
     fetch(`http://${config.server_host}:${config.server_port}/random`)
       .then(res => res.json())
       .then(resJson => setSongOfTheDay(resJson));
-
+    }, []);
+    
     // TODO (TASK 14): add a fetch call to get the app author (name not pennkey) and store the name field in the state variable
     useEffect(() => {
       fetch(`http://${config.server_host}:${config.server_port}/author/name`)
         .then(res => res.json())
         .then(resJson => setAuthor(resJson.data));
-    }, []);
+    
   }, []);
 
   // Here, we define the columns of the "Top Songs" table. The songColumns variable is an array (in order)

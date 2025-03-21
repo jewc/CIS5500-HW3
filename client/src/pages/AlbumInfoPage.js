@@ -4,12 +4,15 @@ import { Container, Link, Stack, Table, TableBody, TableCell, TableContainer, Ta
 
 import SongCard from '../components/SongCard';
 import { formatDuration, formatReleaseDate } from '../helpers/formatter';
+import { NavLink } from 'react-router-dom';
 const config = require('../config.json');
 
 export default function AlbumInfoPage() {
   const { album_id } = useParams();
+  const [songData, setSongData] = useState([]); // default should actually just be [], but empty object element added to avoid error in template code
 
-  const [songData, setSongData] = useState([{}]); // default should actually just be [], but empty object element added to avoid error in template code
+
+//  const [songData, setSongData] = useState([{}]); // default should actually just be [], but empty object element added to avoid error in template code
   const [albumData, setAlbumData] = useState([]);
 
   const [selectedSongId, setSelectedSongId] = useState(null);
@@ -30,8 +33,8 @@ export default function AlbumInfoPage() {
       <Stack direction='row' justify='center'>
         <img
           key={albumData.album_id}
-          src={albumData.thumbnail_url}
-          alt={`${albumData.title} album art`}
+          src={albumData.thumbnail_url??''}
+          alt={`${albumData.title ?? 'Album'} album art`}
           style={{
             marginTop: '40px',
             marginRight: '40px',
@@ -40,7 +43,9 @@ export default function AlbumInfoPage() {
         />
         <Stack>
           <h1 style={{ fontSize: 64 }}>{albumData.title}</h1>
-          <h2>Released: {formatReleaseDate(albumData.release_date)}</h2>
+          <h2>Released: {albumData.release_date ? formatReleaseDate(albumData.release_date) : "Loading..."}</h2>
+          {/* <h2>Released: {formatReleaseDate(albumData.release_date)}</h2> */}
+
         </Stack>
       </Stack>
       <TableContainer>
@@ -58,19 +63,25 @@ export default function AlbumInfoPage() {
               // TODO (TASK 23): render the table content by mapping the songData array to <TableRow> elements
               // Hint: the skeleton code for the very first row is provided for you. Fill out the missing information and then use a map function to render the rest of the rows.
               // Hint: it may be useful to refer back to LazyTable.js
-              songData.map((song) => (
-              <TableRow key={song.song_id}>
-                <TableCell key='#'>{song.number}</TableCell>
-                <TableCell key='Title'>
-                  <Link onClick={() => setSelectedSongId(song.song_id)}>
-                    {song.title}
-                  </Link>
-                </TableCell>
-                <TableCell key='Plays'>{song.plays.toLocaleString()}</TableCell>
-                <TableCell key='Duration'>{formatDuration(song.duration)}</TableCell>
-              </TableRow>
-              ))
-            }
+              songData.length > 0 ? (
+                songData.map((song) => (
+                <TableRow key={song.song_id}>
+                  <TableCell key='#'>{song.number}</TableCell>
+                  <TableCell key='Title'>
+                    <Link onClick={() => setSelectedSongId(song.song_id)}>
+                      {song.title}
+                    </Link>
+                  </TableCell>
+                  <TableCell key='Plays'>{song.plays.toLocaleString()}</TableCell>
+                  <TableCell key='Duration'>{formatDuration(song.duration)}</TableCell>
+                </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4}>No songs found.</TableCell>
+                </TableRow>
+              )
+              }
           </TableBody>
         </Table>
       </TableContainer>

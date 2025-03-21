@@ -46,6 +46,8 @@ export default function LazyTable({ route, columns, defaultPageSize, rowsPerPage
     
   }
 
+
+
   const defaultRenderCell = (col, row) => {
     return <div>{row[col.field]}</div>;
   }
@@ -64,18 +66,18 @@ export default function LazyTable({ route, columns, defaultPageSize, rowsPerPage
             // Wrap this with another map statement to render all columns.                // Hint: look at how we structured the map statement to render all the table headings within the <TableHead> element
 
             <TableRow key={idx}>
-                                {columns.map((col) => (
+                  {columns.map((col) => (
                   <TableCell key={col.headerName}>
                     {/* Note the following ternary statement renders the cell using a custom renderCell function if defined, or defaultRenderCell otherwise */}
                     {col.renderCell ? col.renderCell(row) : defaultRenderCell(col, row)}
                   </TableCell>
-          ))} 
+                   ))} 
             </TableRow>
           ))}
         </TableBody>
         <TablePagination
           rowsPerPageOptions={rowsPerPageOptions ?? [5, 10, 25]}
-          count={-1}
+          count={data.length}
           rowsPerPage={pageSize}
           page={page - 1}
           onPageChange={handleChangePage}
